@@ -9,6 +9,8 @@
 #ifndef PARTICLE_FILTER_H_
 #define PARTICLE_FILTER_H_
 
+#include <random>
+
 #include "helper_functions.h"
 
 struct Particle {
@@ -24,20 +26,21 @@ struct Particle {
 };
 
 
-
 class ParticleFilter {
 	
 	// Number of particles to draw
 	int num_particles; 
-	
-	
-	
+
 	// Flag, if filter is initialized
 	bool is_initialized;
 	
 	// Vector of weights of all particles
 	std::vector<double> weights;
-	
+
+	// Random numbers generator
+  std::random_device seed;
+  std::mt19937 gen;
+
 public:
 	
 	// Set of current particles
@@ -45,10 +48,10 @@ public:
 
 	// Constructor
 	// @param num_particles Number of particles
-	ParticleFilter() : num_particles(0), is_initialized(false) {}
+	ParticleFilter(int n_particles) : num_particles(n_particles), is_initialized(false), gen(seed()) {}
 
 	// Destructor
-	~ParticleFilter() {}
+	~ParticleFilter() = default;
 
 	/**
 	 * init Initializes particle filter by initializing particles to Gaussian
@@ -78,7 +81,7 @@ public:
 	 * @param predicted Vector of predicted landmark observations
 	 * @param observations Vector of landmark observations
 	 */
-	void dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations);
+	void dataAssociation(const std::vector<LandmarkObs>& predicted, std::vector<LandmarkObs>& observations);
 	
 	/**
 	 * updateWeights Updates the weights for each particle based on the likelihood of the 
@@ -99,9 +102,11 @@ public:
 
 	/*
 	 * Set a particles list of associations, along with the associations calculated world x,y coordinates
-	 * This can be a very useful debugging tool to make sure transformations are correct and assocations correctly connected
+	 * This can be a very useful debugging tool to make sure transformations are correct and associations
+	 * correctly connected
 	 */
-	Particle SetAssociations(Particle particle, std::vector<int> associations, std::vector<double> sense_x, std::vector<double> sense_y);
+	void SetAssociations(Particle &particle, const std::vector<int> &associations,
+                       const std::vector<double> &sense_x, const std::vector<double> &sense_y);
 	
 	std::string getAssociations(Particle best);
 	std::string getSenseX(Particle best);
