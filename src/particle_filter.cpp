@@ -40,6 +40,8 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
     particle.theta = nd_theta(gen);
     particle.weight = 1;
   }
+
+  is_initialized = true;
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate) {
@@ -52,18 +54,28 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
   double stddev_y = std_pos[1];
   double stddev_theta = std_pos[2];
   double theta_dot_dt = yaw_rate * delta_t;
-  double velocity_over_yaw = velocity / yaw_rate;
 
+  if (abs(yaw_rate) >= 1e-10) {
+    // Predict particles state: x, y and theta
+    double velocity_over_yaw = velocity / yaw_rate;
+    for (Particle &particle: particles) {
+      particle.x += velocity_over_yaw * (sin(particle.theta + theta_dot_dt) - sin(particle.theta));
+      particle.y += velocity_over_yaw * (cos(particle.theta) - cos(particle.theta + theta_dot_dt));
+      particle.theta += theta_dot_dt;
+    }
+  } else {
+    // Predict particles state: only x and y coordinates
+    for (Particle &particle: particles) {
+      particle.x += velocity * delta_t * cos(particle.theta);
+      particle.y += velocity * delta_t * sin(particle.theta);
+    }
+  }
+
+  // Add gaussian noise
   for (Particle &particle: particles) {
-    // Predict particles state
-    double x = particle.x + velocity_over_yaw * (sin(particle.theta + theta_dot_dt) - sin(particle.theta));
-    double y = particle.y + velocity_over_yaw * (cos(particle.theta) - cos(particle.theta + theta_dot_dt));
-    double theta = particle.theta + theta_dot_dt;
-
-    // Add gaussian noise
-    std::normal_distribution<double> nd_x(x, stddev_x);
-    std::normal_distribution<double> nd_y(y, stddev_y);
-    std::normal_distribution<double> nd_theta(theta, stddev_theta);
+    std::normal_distribution<double> nd_x(particle.x, stddev_x);
+    std::normal_distribution<double> nd_y(particle.y, stddev_y);
+    std::normal_distribution<double> nd_theta(particle.theta, stddev_theta);
     particle.x = nd_x(gen);
     particle.y = nd_y(gen);
     particle.theta = nd_theta(gen);

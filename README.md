@@ -18,15 +18,15 @@ This project involves the Term 2 Simulator which can be downloaded [here](https:
 
 The file [particle_filter.cpp](src/particle_filter.cpp) contains the implementation of a `ParticleFilter` class and some associated methods.
 
-Function `ParticleFilter::init` (lines 18-43) sets initial values of `x`, `y` and `theta` for each particle. Values are set in the vicinity of a GPS estimate passed as parameters with gaussian distribution noise specified by standard deviation passed in the `std` parameter. Initial particle weight is set to 1, particle id is set to a 0-based index in the `particles` vector. `std::normal_distribution` is used to generate random noise data. 
+Function `ParticleFilter::init` (lines 18-45) sets initial values of `x`, `y` and `theta` for each particle. Values are set in the vicinity of a GPS estimate passed as parameters with gaussian distribution noise specified by standard deviation passed in the `std` parameter. Initial particle weight is set to 1, particle id is set to a 0-based index in the `particles` vector. `std::normal_distribution` is used to generate random noise data. 
 
-Function `ParticleFilter::prediction` (lines 45-71) performs prediction step of the filter. It adds measurements to each particle (lines 59-61) and gaussian noise (lines 63-69), using `std::normal_distribution`.
+Function `ParticleFilter::prediction` (lines 47-83) performs prediction step of the filter. When yaw rate is close to zero, the function updates only `x` and `y` coordinates (lines 68-71), otherwise it updates `x`, `y` and `theta` (lines 60-65). After adding measurements to each particle the function adds gaussian noise (lines 75-82), using `std::normal_distribution`.
 
-Function `ParticleFilter::dataAssociation` (lines 73-88) finds the closest landmark for each observation and sets landmark id in the observation field `id`. It uses `std::min_element` and provides a custom implementation of `Compare` predicate.
+Function `ParticleFilter::dataAssociation` (lines 85-100) finds the closest landmark for each observation and sets landmark id in the observation field `id`. It uses `std::min_element` and provides a custom implementation of `Compare` predicate.
 
-Function `ParticleFilter::updateWeights` (lines 90-176) updates particle weights. It build a list of predicted observations located within `sensor_range` radius from particle location (lines 117-127), converts observations to map coordinates (lines 130-140), invokes `dataAssociation` to associate observations with landmarks (line 143), calls `SetAssociations` to provide data to the simulator for visualization purposes (lines 146-155) and finally computes particle weights (lines 158-174).
+Function `ParticleFilter::updateWeights` (lines 102-188) updates particle weights. It build a list of predicted observations located within `sensor_range` radius from particle location (lines 129-139), converts observations to map coordinates (lines 142-152), invokes `dataAssociation` to associate observations with landmarks (line 155), calls `SetAssociations` to provide data to the simulator for visualization purposes (lines 158-167) and finally computes particle weights (lines 170-186).
 
-Function `ParticleFilter::resample` (lines 178-197) resamples particles proportional to their weights, using `std::discrete_distribution`. New resampled list of particles replaces the old list.
+Function `ParticleFilter::resample` (lines 190-209) resamples particles proportional to their weights, using `std::discrete_distribution`. New resampled list of particles replaces the old list.
 
 ## Filter accuracy and runtime performance
 
